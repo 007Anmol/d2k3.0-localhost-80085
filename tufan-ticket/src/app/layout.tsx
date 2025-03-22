@@ -1,5 +1,5 @@
 import './globals.css';
-import QueryProvider from '@/providers/QueryProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
 import AuthProvider from '@/providers/AuthProvider';
 import { Inter, Montserrat } from 'next/font/google';
 import { Metadata } from 'next';
@@ -28,15 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
-      <body className="bg-gray-50 text-gray-900 min-h-screen">
-        <main className="max-w-screen-xl mx-auto">
+    <html lang="en" className={`${inter.variable} ${montserrat.variable} dark`}>
+      <body className="bg-gray-950 text-gray-200 min-h-screen">
           <AuthProvider>
             <QueryProvider>
               {children}
             </QueryProvider>
           </AuthProvider>
-        </main>
       </body>
     </html>
   );

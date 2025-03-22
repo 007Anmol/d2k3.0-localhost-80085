@@ -1,48 +1,65 @@
+// src/components/common/BottomNavigation.tsx
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiSearch, FiUser } from 'react-icons/fi';
-import { PiTicket } from 'react-icons/pi';
+import { motion } from 'framer-motion';
+import { Home, Compass, Ticket, Calendar, Trophy } from 'lucide-react';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
   
-  const isActive = (path: string) => pathname === path;
-  
+  const navItems = [
+    { path: '/', label: 'Home', icon: Home },
+    { path: '/explore', label: 'Explore', icon: Compass },
+    { path: '/tickets', label: 'My Tickets', icon: Ticket },
+    { path: '/calendar', label: 'Calendar', icon: Calendar },
+    { path: '/rewards', label: 'Rewards', icon: Trophy },
+  ];
+
   return (
-    <nav className="mobile-nav md:hidden">
-      <Link 
-        href="/" 
-        className={`flex flex-col items-center ${isActive('/') ? 'text-primary-600' : 'text-gray-500'}`}
-      >
-        <FiHome className="w-6 h-6" />
-        <span className="text-xs mt-1">Home</span>
-      </Link>
-      
-      <Link 
-        href="/explore" 
-        className={`flex flex-col items-center ${isActive('/explore') ? 'text-primary-600' : 'text-gray-500'}`}
-      >
-        <FiSearch className="w-6 h-6" />
-        <span className="text-xs mt-1">Explore</span>
-      </Link>
-      
-      <Link 
-        href="/tickets" 
-        className={`flex flex-col items-center ${isActive('/tickets') ? 'text-primary-600' : 'text-gray-500'}`}
-      >
-        <PiTicket className="w-6 h-6" />
-        <span className="text-xs mt-1">Tickets</span>
-      </Link>
-      
-      <Link 
-        href="/profile" 
-        className={`flex flex-col items-center ${isActive('/profile') ? 'text-primary-600' : 'text-gray-500'}`}
-      >
-        <FiUser className="w-6 h-6" />
-        <span className="text-xs mt-1">Profile</span>
-      </Link>
-    </nav>
+    <motion.div 
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ type: 'spring', damping: 20 }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 frosted-glass-dark pb-safe"
+    >
+      <nav className="flex justify-around py-3">
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          const Icon = item.icon;
+          
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className="flex flex-col items-center"
+            >
+              <div className="relative">
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 rounded-full bg-violet-600"
+                    style={{ padding: '100%', transform: 'translate(-25%, -25%)' }}
+                    transition={{ type: 'spring', duration: 0.5 }}
+                  />
+                )}
+                <Icon
+                  size={24}
+                  className={`relative z-10 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                />
+                
+                {item.path === '/rewards' && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                )}
+              </div>
+              <span className={`text-xs mt-1 ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </motion.div>
   );
 }

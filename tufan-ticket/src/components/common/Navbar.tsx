@@ -1,71 +1,151 @@
+// src/components/common/Navbar.tsx
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { FiSearch, FiUser, FiBell } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, User, Bell, Mic } from 'lucide-react';
+import VoiceSearchModal from '@/components/search/VoiceSearchModal';
 
 export default function Navbar() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  const toggleSearch = () => {
+    setShowSearchBar(!showSearchBar);
+    if (!showSearchBar) {
+      setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle search logic here
+    console.log('Searching for:', searchInput);
+    setShowSearchBar(false);
+    setSearchInput('');
+  };
+
+  const openVoiceSearch = () => {
+    setIsVoiceSearchOpen(true);
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/TTLogo.png"
-            alt="TufanTicket"
-            width={70}
-            height={70}
-            className="mr-2"
-          />
-          <span className="text-xl font-display font-bold text-primary-600 hidden sm:inline">
-            TufanTicket
-          </span>
-        </Link>
-        
-        {isSearchOpen ? (
-          <div className="flex-1 mx-4 relative">
-            <input
-              type="text"
-              placeholder="Search events, artists, venues..."
-              className="input-field"
-              autoFocus
-              onBlur={() => setIsSearchOpen(false)}
-            />
-            <button 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              onClick={() => setIsSearchOpen(false)}
+    <>
+      <motion.header
+        initial={{ y: 0, opacity: 1 }}
+        animate={{ 
+          y: isVisible ? 0 : -100, 
+          opacity: isVisible ? 1 : 0
+        }}
+        transition={{ duration: 0.3 }}
+        className={`floating-nav max-w-lg mx-auto ${!isVisible ? 'pointer-events-none' : ''}`}
+      >
+        <nav className="flex items-center justify-between w-full p-1">
+          <Link 
+            href="/"
+            className={`px-4 py-2 rounded-full ${pathname === '/' ? 'bg-violet-600' : 'hover:bg-gray-800'} transition-colors duration-300`}
+          >
+            <span className="text-lg font-medium">Home</span>
+          </Link>
+          
+          <div className="flex space-x-1">
+            <button
+              onClick={toggleSearch}
+              className="p-3 rounded-full hover:bg-gray-800 transition-colors"
+              aria-label="Search"
             >
-              Cancel
+              <Search size={20} />
             </button>
+            
+            <button
+              onClick={openVoiceSearch}
+              className="p-3 rounded-full hover:bg-gray-800 transition-colors"
+              aria-label="Voice Search"
+            >
+              <Mic size={20} />
+            </button>
+            
+            <Link
+              href="/notifications"
+              className="p-3 rounded-full hover:bg-gray-800 transition-colors relative"
+            >
+              <Bell size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Link>
+            
+            <Link
+              href="/profile"
+              className="p-3 rounded-full hover:bg-gray-800 transition-colors"
+            >
+              <User size={20} />
+            </Link>
           </div>
-        ) : (
-          <nav className="hidden md:flex space-x-6">
-            <Link href="/explore" className="nav-link">Explore</Link>
-            <Link href="/trending" className="nav-link">Trending</Link>
-            <Link href="/recommendations" className="nav-link">For You</Link>
-            <Link href="/tickets" className="nav-link">My Tickets</Link>
-          </nav>
+        </nav>
+      </motion.header>
+      
+      <AnimatePresence>
+        {showSearchBar && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-0 left-0 right-0 z-50 p-4 bg-gray-900/95 backdrop-blur-md"
+          >
+            <form onSubmit={handleSearch} className="flex items-center">
+              <input
+                id="search-input"
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search events, artists, venues..."
+                className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                type="submit"
+                className="p-3 bg-violet-600 rounded-r-lg"
+              >
+                <Search size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={toggleSearch}
+                className="ml-2 p-3 bg-gray-800 rounded-lg"
+              >
+                Cancel
+              </button>
+            </form>
+          </motion.div>
         )}
-        
-        <div className="flex items-center space-x-3">
-          {!isSearchOpen && (
-            <button 
-              className="p-2 rounded-full hover:bg-gray-100"
-              onClick={() => setIsSearchOpen(true)}
-            >
-              <FiSearch className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
-          <Link href="/notifications" className="p-2 rounded-full hover:bg-gray-100 hidden sm:block">
-            <FiBell className="w-5 h-5 text-gray-700" />
-          </Link>
-          <Link href="/profile" className="p-2 rounded-full hover:bg-gray-100">
-            <FiUser className="w-5 h-5 text-gray-700" />
-          </Link>
-        </div>
-      </div>
-    </header>
+      </AnimatePresence>
+
+      <VoiceSearchModal
+        isOpen={isVoiceSearchOpen}
+        onClose={() => setIsVoiceSearchOpen(false)}
+      />
+    </>
   );
 }
