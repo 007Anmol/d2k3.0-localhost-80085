@@ -1,14 +1,30 @@
+// src/app/page.tsx
 import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import Navbar from '@/components/common/Navbar';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import EventCard from '@/components/events/EventCard';
 import RecommendationCarousel from '@/components/recommendations/RecommendationCarousel';
+import RecommendationsProvider from '@/providers/RecommendationsProvider';
 import CategoryFilters from '@/components/events/CategoryFilters';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'TufanTicket - Discover Events',
+  description: 'AI-powered event discovery for Gen Z'
+};
+
+export default function Home({ 
+  searchParams 
+}: { 
+  searchParams: { [key: string]: string | string[] | undefined } 
+}) {
+  // Get the category from URL params
+  const category = typeof searchParams.category === 'string' 
+    ? searchParams.category 
+    : undefined;
+  
   return (
     <div className="min-h-screen pb-16 md:pb-0">
       <Navbar />
@@ -24,7 +40,7 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary-900/70 to-secondary-900/50 flex items-center px-6">
           <div className="max-w-md">
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
               Discover Your Next Experience
             </h1>
             <p className="text-white/90 mb-4">
@@ -38,9 +54,7 @@ export default function Home() {
       </section>
       
       {/* Category Filters */}
-      <section className="mt-6 px-4">
-        <CategoryFilters />
-      </section>
+      <CategoryFilters />
       
       {/* Personalized Recommendations */}
       <section className="mt-8 px-4">
@@ -51,45 +65,29 @@ export default function Home() {
           </Link>
         </div>
         <Suspense fallback={<LoadingSpinner />}>
-          <RecommendationCarousel type="personalized" />
+          <RecommendationsProvider 
+            type="personalized" 
+            category={category} 
+            limit={10}
+          />
         </Suspense>
       </section>
-      
+
       {/* Trending Events */}
       <section className="mt-8 px-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Trending Now</h2>
-          <Link href="/trending" className="text-primary-600 text-sm font-medium">
+          <Link href="/trending" className="text-primary-600 text-sm">
             View All
           </Link>
         </div>
         <Suspense fallback={<LoadingSpinner />}>
-          <RecommendationCarousel type="trending" />
+          <RecommendationsProvider 
+            type="trending" 
+            category={category}
+            limit={10}
+          />
         </Suspense>
-      </section>
-      
-      {/* Nearby Events */}
-      <section className="mt-8 px-4 mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Nearby Events</h2>
-          <Link href="/nearby" className="text-primary-600 text-sm font-medium">
-            View Map
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((id) => (
-            <EventCard 
-              key={id}
-              id={id.toString()}
-              title={`Local Event ${id}`}
-              date="Tomorrow, 7:00 PM"
-              location="Downtown Venue"
-              image={`/images/event-${id}.jpg`}
-              price={25 + id * 5}
-              tags={['music', 'local']}
-            />
-          ))}
-        </div>
       </section>
       
       <BottomNavigation />

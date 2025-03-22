@@ -10,6 +10,7 @@ interface EventCardProps {
   image: string;
   price: number;
   tags?: string[];
+  trend_score?: number;
 }
 
 export default function EventCard({
@@ -20,9 +21,10 @@ export default function EventCard({
   image,
   price,
   tags = [],
+  trend_score,
 }: EventCardProps) {
   return (
-    <Link href={`/event/${id}`} className="event-card block">
+    <Link href={`/event/${id}`} className="event-card block rounded-lg overflow-hidden shadow-md bg-white transition-transform hover:shadow-lg hover:-translate-y-1">
       <div className="relative aspect-[3/2]">
         <Image
           src={image}
@@ -33,8 +35,15 @@ export default function EventCard({
         
         {/* Price badge */}
         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-semibold text-primary-700">
-          ${price}
+          ${price.toFixed(2)}
         </div>
+        
+        {/* Trending indicator */}
+        {trend_score && trend_score > 5 && (
+          <div className="absolute top-2 left-2 bg-red-500/90 text-white backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold">
+            Trending 🔥
+          </div>
+        )}
         
         {/* Tags */}
         {tags.length > 0 && (
